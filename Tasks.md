@@ -6,10 +6,10 @@
 4. Implement CSF:
 Luu y khi implement random cua numpy: phai set seed 2017 (de reproduce duoc). Neu duoc thi tao them bo test
 Có 7 bước chính:
-1) Tim dominant hue
-2) Initilize va chay EM de ra GMM (ket thuc o Fig 2)
-3) Tinh các thông số xác suất (công thức 5, 6, 7, 8)
-4) Tinh Compactness
-5) Tinh Isolation
-6) Tinh pixel saliency
-7) Chay tren bo test va evaluate theo paper do
+- 1) Tim dominant hue
+- 2) Initilize va chay EM de ra GMM (ket thuc o Fig 2)
+- 3) Tinh các thông số xác suất (công thức 5, 6, 7, 8)
+- 4) Tinh Compactness
+- 5) Tinh Isolation
+- 6) Tinh pixel saliency
+- 7) Chay tren bo test va evaluate theo paper do
