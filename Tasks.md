@@ -13,3 +13,5 @@ Có 7 bước chính:
 - 5) Tinh Isolation
 - 6) Tinh pixel saliency
 - 7) Chay tren bo test va evaluate theo paper do
+
+Deadline: 31/5
