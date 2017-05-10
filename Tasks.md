@@ -1,4 +1,5 @@
-1. Tim training / test data (MIT saliency images data set) va dataset ma paper(s) da dung
+1. Tim training / test data (MIT saliency images data set) va dataset ma paper(s) da dung 
+Done, see http://mmcheng.net/msra10k/ for MRSA dataset of 10k images with ground truth
 2. Quyet dinh programming language (Python for git, C++ for class) + OpenCV
 3. List paper for implementation:
 - "Salient Region Detection by Modeling Distributions of Color and Orientation", Viswanath et al. (CSF and OSF)
