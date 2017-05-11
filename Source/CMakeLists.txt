@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.8)
+project(ccv_saliency)
+find_package( OpenCV REQUIRED )
+include_directories( include )
+add_library(gauss_pyr src/gauss_pyr.cpp)
+add_library(laplacian_pyr src/laplacian_pyr.cpp)
+add_library(oriented_pyr src/oriented_pyr.cpp)
+
+add_executable(${PROJECT_NAME}_run src/main.cpp)
+target_link_libraries(${PROJECT_NAME}_run ${OpenCV_LIBS} gauss_pyr laplacian_pyr oriented_pyr)
