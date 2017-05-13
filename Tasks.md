@@ -16,3 +16,5 @@ Có 7 bước chính:
 - 7) Chay tren bo test va evaluate theo paper do
 
 Deadline: 31/5
+
+4. Some ideas to handle multiple salient region at https://jacobgil.github.io/computervision/saliency-from-backproj
