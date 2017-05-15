@@ -12,7 +12,7 @@ oriented_pyr::oriented_pyr(const laplacian_pyr& p, int num_orientations)
     for(int i = 0; i < num_orientations; ++i)
     {
         double theta = -CV_PI / 2 - i * step;
-        cv::Mat kernel = cv::getGaborKernel( cv::Size(5, 5), 5.0, theta, 2.0 * CV_PI, 1.0, 0, CV_32F);
+        cv::Mat kernel = cv::getGaborKernel( cv::Size(25, 25), 10.0, theta, 10.0, 1.0, 0, CV_32F);
         gaborFilters.push_back(kernel.clone());
     }
     for(int i = 0; i < number_of_orientations; ++i)
