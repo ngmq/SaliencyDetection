@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "oriented_pyr.h"
+#include <string>
 
 cv::Mat across_scale_addition(const std::vector<cv::Mat>& scale_images)
 {
@@ -24,12 +25,14 @@ cv::Mat across_scale_addition(const std::vector<cv::Mat>& scale_images)
     return result;
 }
 
+double minVal, maxVal;
+
 int main(int argc, char** argv )
 {
     cv::Mat image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
     cv::Mat gray;
-    cv::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
+    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
   
     gray.convertTo(gray, CV_32F);
     gray /= 255.0f;
@@ -51,7 +54,7 @@ int main(int argc, char** argv )
     //cv::waitKey(0);
 
     //cv::namedWindow("Gauss Pyramid", CV_WINDOW_AUTOSIZE);
-    int nLayers = 4;
+    int nLayers = 3;
     double sigma = 2.0;
     gauss_pyr gp(gray, nLayers, sigma);
     for( int i = 0; i < nLayers; ++i )
@@ -91,21 +94,21 @@ int main(int argc, char** argv )
 
 	 std::cout << "Across Scale displaying..." << std::endl;
 	 
-	 cv::namedWindow("Across Scale", CV_WINDOW_AUTOSIZE);
+	 //cv::namedWindow("Across Scale", CV_WINDOW_AUTOSIZE);
     cv::Mat mOrientation;
     bool firstAddition = true;    
     for(int i = 0; i < num_orientations; ++i)
     {
         cv::Mat layer = across_scale_addition(op.getByOrientation(i));
         
-        double minVal, maxVal;
+        
         cv::minMaxLoc(layer, &minVal, &maxVal);
         std::cout << "Minval = " << minVal << std::endl;
         
-        cv::Mat layer2;
-        cv::normalize(layer, layer2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-        cv::imshow("Across Scale", layer2);
-        cv::waitKey(0);
+        cv::threshold(layer, layer, maxVal * 0.6, 1, cv::THRESH_BINARY);
+        //cv::normalize(layer, layer2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+        //cv::imshow("Across Scale", layer);
+        //cv::waitKey(0);
         
         if( firstAddition )
         {
@@ -114,31 +117,31 @@ int main(int argc, char** argv )
         }
         mOrientation += layer;
     }
+    mOrientation /= num_orientations;
     
     //std::cout << mOrientation << std::endl;
-    cv::Mat mOrientation2 = mOrientation.clone();
-    cv::namedWindow("Orientation", CV_WINDOW_AUTOSIZE);
-    //cv::normalize(mOrientation, mOrientation2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-    cv::imshow("Orientation", mOrientation2);
-    cv::waitKey(0);
+    /*cv::namedWindow("Orientation", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Orientation", mOrientation);
+    cv::waitKey(0);*/
+
+	 /*cv::Mat mFinal = mOrientation.clone();   
+	 cv::minMaxLoc(mFinal, &minVal, &maxVal); 
+    cv::threshold(mFinal, mFinal, maxVal * 0.6, 1, cv::THRESH_BINARY);
     
-    //cv::FileStorage fs("myfile.yaml", cv::FileStorage::WRITE );
-	 //fs << "Orientation" << mOrientation;
-	 //fs.release();
-	 cv::Mat mO = mOrientation.clone();
-	 double minVal, maxVal;
-	 cv::minMaxLoc(mO, &minVal, &maxVal);
-	 //std::cout << minVal << std::endl;
-	 //std::cout << maxVal << std::endl;
+    
+    cv::namedWindow("Final", CV_WINDOW_AUTOSIZE);
+	 cv::imshow("Final", mFinal);
+	 cv::waitKey(0);*/
+    
+    cv::FileStorage fs("myfile.yaml", cv::FileStorage::WRITE );
+	 fs << "Orientation" << mOrientation;
+	 fs.release();
 	 
-	 //cv::normalize(mO, mO, 0, maxVal, cv::NORM_MINMAX, CV_32F);
-	 //cv::threshold(mO, mO, maxVal * 0.7, 1, CV_8UC1);
+	 /***
+	 Gaussian and Laplacian Pyramid
+	 ***/
 	 
-	 //cv::namedWindow("Orientation 2222", CV_WINDOW_AUTOSIZE);
-	 //cv::imshow("Orientation 2222", mO);
-	 //cv::waitKey(0);
-	 
-	  float center_sigma = 2.0;
+	 float center_sigma = 2.0;
     float surround_sigma = 16.0;
 
 	  gauss_pyr c_pyr_l(lab_channels[0], nLayers, center_sigma);
@@ -148,7 +151,7 @@ int main(int argc, char** argv )
     gauss_pyr s_pyr_a(lab_channels[1], nLayers, surround_sigma);
     gauss_pyr s_pyr_b(lab_channels[2], nLayers, surround_sigma);
     
-	cv::Mat FCS, FSC, F, F_GY, F_Intensity;
+	cv::Mat FCS, FSC, mF_RG, mF_BY, mF_Intensity;
 
     std::vector<cv::Mat> CS_vec;
     for (int i = 0; i < nLayers; ++i)
@@ -161,9 +164,9 @@ int main(int argc, char** argv )
         CS_vec.push_back(CS);
     }
     FCS = across_scale_addition(CS_vec);
-	 cv::namedWindow("Feature map CS", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Feature map CS", FCS );
-    cv::waitKey(0);
+	 //cv::namedWindow("Feature map CS", CV_WINDOW_AUTOSIZE);
+    //cv::imshow("Feature map CS", FCS );
+    //cv::waitKey(0);
     
     std::vector<cv::Mat> SC_vec;
     for (int i = 0; i < nLayers; ++i)
@@ -177,27 +180,27 @@ int main(int argc, char** argv )
     }
     
     FSC = across_scale_addition(SC_vec);
-	 cv::namedWindow("Feature map SC", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Feature map SC", FSC );
-    cv::waitKey(0);
+	 //cv::namedWindow("Feature map SC", CV_WINDOW_AUTOSIZE);
+    //cv::imshow("Feature map SC", FSC );
+    //cv::waitKey(0);
     
-    F = FCS + FSC;
-    cv::Mat Color_RG_F = F.clone();
-    cv::namedWindow("Feature map", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Feature map", F );
-    cv::waitKey(0);
+    mF_RG = 0.5 * (FCS + FSC);
+    //cv::Mat Color_RG_F = F.clone();
+/*    cv::namedWindow("Feature map a", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map a", mF_RG);
+    cv::waitKey(0);*/
     
     // binarize
-    cv::minMaxLoc(F, &minVal, &maxVal);
+/*    cv::minMaxLoc(F, &minVal, &maxVal);
 	 cv::normalize(F, F, 0, maxVal, cv::NORM_MINMAX, CV_32F);
 	 cv::threshold(F, F, maxVal * 0.4, 1, CV_8UC1);
 	 
 	 cv::namedWindow("Red/Green", CV_WINDOW_AUTOSIZE);
 	 cv::imshow("Red/Green", F);
-	 cv::waitKey(0);
+	 cv::waitKey(0);*/
 	 
 	 /***
-	 Green Yellow
+	 Blue Yellow
 	 ***/
 	 
 	 CS_vec.clear();
@@ -211,9 +214,9 @@ int main(int argc, char** argv )
         CS_vec.push_back(CS);
     }
     FCS = across_scale_addition(CS_vec);
-	 cv::namedWindow("Feature map CS b", CV_WINDOW_AUTOSIZE);
+	 /*cv::namedWindow("Feature map CS b", CV_WINDOW_AUTOSIZE);
     cv::imshow("Feature map CS b", FCS );
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     
     SC_vec.clear();
     for (int i = 0; i < nLayers; ++i)
@@ -227,18 +230,18 @@ int main(int argc, char** argv )
     }
     
     FSC = across_scale_addition(SC_vec);
-	 cv::namedWindow("Feature map SC b", CV_WINDOW_AUTOSIZE);
+	 /*cv::namedWindow("Feature map SC b", CV_WINDOW_AUTOSIZE);
     cv::imshow("Feature map SC b", FSC );
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     
-    F_GY = FCS + FSC;
-    cv::Mat Color_GY_F = F_GY.clone();
-    cv::namedWindow("Feature map b", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Feature map b", F_GY );
-    cv::waitKey(0);
+    mF_BY = 0.5 * (FCS + FSC);
+   /* cv::namedWindow("Feature map b", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map b", mF_BY);
+    cv::waitKey(0);*/
 	 
 	 /*** Intensity
 	 ***/
+	 
 	 CS_vec.clear();
     for (int i = 0; i < nLayers; ++i)
     {
@@ -250,9 +253,9 @@ int main(int argc, char** argv )
         CS_vec.push_back(CS);
     }
     FCS = across_scale_addition(CS_vec);
-	 cv::namedWindow("Feature map CS l", CV_WINDOW_AUTOSIZE);
+	 /*cv::namedWindow("Feature map CS l", CV_WINDOW_AUTOSIZE);
     cv::imshow("Feature map CS l", FCS );
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     
     SC_vec.clear();
     for (int i = 0; i < nLayers; ++i)
@@ -266,42 +269,52 @@ int main(int argc, char** argv )
     }
     
     FSC = across_scale_addition(SC_vec);
-	 cv::namedWindow("Feature map SC l", CV_WINDOW_AUTOSIZE);
+	 /*cv::namedWindow("Feature map SC l", CV_WINDOW_AUTOSIZE);
     cv::imshow("Feature map SC l", FSC );
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     
-    F_Intensity = FCS + FSC;
-    cv::Mat Intensity_F = F_Intensity.clone();
-    cv::namedWindow("Feature map l", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Feature map l", F_Intensity );
-    cv::waitKey(0);
+    mF_Intensity = 0.5 * (FCS + FSC);
+   /* cv::namedWindow("Feature map l", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map l", mF_Intensity );
+    cv::waitKey(0);*/
     
 	 /*** DONE ***/
 	 
-	 mO = mOrientation.clone();
-	 F = Color_RG_F.clone();
-	 F_GY = Color_GY_F.clone();
-	 F_Intensity = Intensity_F.clone();
 	 
-	 double max_m0, max_F, max_F_GY, max_F_Intensity, max_final;
-	 cv::minMaxLoc(mO, &minVal, &max_m0);
-	 cv::minMaxLoc(F, &minVal, &max_F);
-	 cv::minMaxLoc(F_GY, &minVal, &max_F_GY);
-	 cv::minMaxLoc(F_Intensity, &minVal, &max_F_Intensity);
+	 double max_m0, max_F_RG, max_F_BY, max_F_Intensity, max_final;
+	 cv::minMaxLoc(mOrientation, &minVal, &max_m0);
+	 cv::minMaxLoc(mF_RG, &minVal, &max_F_RG);
+	 cv::minMaxLoc(mF_BY, &minVal, &max_F_BY);
+	 cv::minMaxLoc(mF_Intensity, &minVal, &max_F_Intensity);
 	 
-    max_final = cv::max(max_m0, max_F);
-    max_final = cv::max(max_final, max_F_GY);
+    max_final = cv::max(max_m0, max_F_RG);
+    max_final = cv::max(max_final, max_F_BY);
     max_final = cv::max(max_final, max_F_Intensity);
     
-    std::cout << max_m0 << "; " << max_F << "; " << max_final << std::endl;
-    cv::normalize(mO, mO, 0, max_final, cv::NORM_MINMAX, CV_32F);
-	 cv::normalize(F, F, 0, max_final, cv::NORM_MINMAX, CV_32F);
-	 cv::normalize(F_GY, F_GY, 0, max_final, cv::NORM_MINMAX, CV_32F);
-	 cv::normalize(F_Intensity, F_Intensity, 0, max_final, cv::NORM_MINMAX, CV_32F);
+    //std::cout << max_m0 << "; " << max_F_RG << "; " << max_final << std::endl;
+    cv::normalize(mOrientation, mOrientation, 0, max_final, cv::NORM_MINMAX, CV_32F);
+	 cv::normalize(mF_RG, mF_RG, 0, max_final, cv::NORM_MINMAX, CV_32F);
+	 cv::normalize(mF_BY, mF_BY, 0, max_final, cv::NORM_MINMAX, CV_32F);
+	 cv::normalize(mF_Intensity, mF_Intensity, 0, max_final, cv::NORM_MINMAX, CV_32F);
 	 
-	 cv::Mat mFinal = mO + F + F_GY + F_Intensity;
+	 cv::namedWindow("Orientation", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Orientation", mOrientation);
+    cv::waitKey(0);
+    
+    cv::namedWindow("Feature map l", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map l", mF_Intensity );
+    cv::waitKey(0);
+    
+    cv::namedWindow("Feature map a", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map a", mF_RG);
+    cv::waitKey(0);
+    
+ 	  cv::namedWindow("Feature map b", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Feature map b", mF_BY);
+    cv::waitKey(0);
+	 
+	 cv::Mat mFinal = mOrientation + mF_RG + mF_BY + mF_Intensity;
 	 cv::minMaxLoc(mFinal, &minVal, &max_final);
-	 
 	 
 	 
 	 cv::Mat layer = mFinal.clone();		 
