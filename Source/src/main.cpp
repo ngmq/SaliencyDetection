@@ -4,54 +4,6 @@
 #include "oriented_pyr.h"
 #include <string>
 
-bool computeBinaryMap( cv::InputArray _saliencyMap, cv::OutputArray _binaryMap )
-{
-  cv::Mat saliencyMap = _saliencyMap.getMat();
-  cv::Mat labels = cv::Mat::zeros( saliencyMap.rows * saliencyMap.cols, 1, 1 );
-  cv::Mat samples = cv::Mat_<float>( saliencyMap.rows * saliencyMap.cols, 1 );
-  cv::Mat centers;
-  cv::TermCriteria terminationCriteria;
-  terminationCriteria.epsilon = 0.1;
-  terminationCriteria.maxCount = 5000;
-  terminationCriteria.type = cv::TermCriteria::COUNT + cv::TermCriteria::EPS;
-
-  int elemCounter = 0;
-  for ( int i = 0; i < saliencyMap.rows; i++ )
-  {
-    for ( int j = 0; j < saliencyMap.cols; j++ )
-    {
-      samples.at<float>( elemCounter, 0 ) = saliencyMap.at<float>( i, j );
-      elemCounter++;
-    }
-  }
-
-  cv::kmeans( samples, 5, labels, terminationCriteria, 5, cv::KMEANS_RANDOM_CENTERS, centers );
-
-  cv::Mat outputMat = cv::Mat_<float>( saliencyMap.size() );
-  int intCounter = 0;
-  for ( int x = 0; x < saliencyMap.rows; x++ )
-  {
-    for ( int y = 0; y < saliencyMap.cols; y++ )
-    {
-      outputMat.at<float>( x, y ) = centers.at<float>( labels.at<int>( intCounter, 0 ), 0 );
-      intCounter++;
-    }
-
-  }
-
-  //Convert
-  outputMat = outputMat * 255;
-  outputMat.convertTo( outputMat, CV_8U );
-
-  // adaptative thresholding using Otsu's method, to make saliency map binary
-  _binaryMap.createSameSize(outputMat, outputMat.type());
-  cv::Mat BinaryMap = _binaryMap.getMat();
-  cv::threshold( outputMat, BinaryMap, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU );
-
-  return true;
-
-}
-
 cv::Mat across_scale_addition(const std::vector<cv::Mat>& scale_images)
 {
     cv::Size im_size = scale_images[0].size();
@@ -72,6 +24,40 @@ cv::Mat across_scale_addition(const std::vector<cv::Mat>& scale_images)
     }
     return result;
 }
+
+int count_local_maxima(const cv::Mat& input, const int kernel_size)
+{
+	cv::Mat src = input.clone();
+	src.convertTo(src, CV_8U);
+	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX, CV_8U);
+	
+	int cnt = 0;
+	
+	for(int i = 0; i < src.rows; ++i)
+	{
+		for(int j = 0; j < src.cols; ++j)
+		{
+			unsigned char center = src.at<unsigned char>(i, j);
+			if(center <= 200)
+				continue;
+			bool isLocal = true;
+			for(int dx = -5; dx <= 5; ++dx)
+			{
+				for(int dy = -5; dy <= 5; ++dy)
+				{
+					unsigned char surround = src.at<unsigned char>(i + dx, j + dy);	
+					if( (dx != 0 || dy != 0) && surround > center )
+					{
+						isLocal = false;					
+					}			
+				}			
+			}
+			cnt += isLocal;
+		}	
+	}
+	return cnt;
+}
+
 
 double minVal, maxVal;
 
@@ -133,7 +119,8 @@ int main(int argc, char** argv )
     {
         for( int j = 0; j < nLayers; ++j )
         {
-        		//cv::Mat layer = op.get(i, j);
+        		//cv::Mat layer = op.get(i, j)vertTo( outputMat, CV_8U );
+;
         		//cv::normalize(layer, layer, 0, 255, cv::NORM_MINMAX, CV_8UC1);
             //cv::imshow("Oriented Pyramid", layer);
             //cv::waitKey(0);
@@ -174,7 +161,8 @@ int main(int argc, char** argv )
 
 	 /*cv::Mat mFinal = mOrientation.clone();   
 	 cv::minMaxLoc(mFinal, &minVal, &maxVal); 
-    cv::threshold(mFinal, mFinal, maxVal * 0.6, 1, cv::THRESH_BINARY);
+    cv::threshold(mFinal, mFinal, maxVal * 0vertTo( outputMat, CV_8U );
+.6, 1, cv::THRESH_BINARY);
     
     
     cv::namedWindow("Final", CV_WINDOW_AUTOSIZE);
@@ -361,7 +349,25 @@ int main(int argc, char** argv )
     cv::imshow("Feature map b", mF_BY);
     cv::waitKey(0);
 	 
-	 cv::Mat mFinal = mOrientation + mF_RG + mF_BY + mF_Intensity;
+	 int nLocalM_Orientation = count_local_maxima(mOrientation, 3);
+	 int nLocalM_RG = count_local_maxima(mF_RG, 3);
+	 int nLocalM_BY = count_local_maxima(mF_BY, 3);
+	 int nLocalM_Intensity = count_local_maxima(mF_Intensity, 3);
+	 
+	 float wOrientation = sqrt(1.0 / nLocalM_Orientation);
+	 float wRG = nLocalM_RG == 0 ? 0 : sqrt(1.0 / nLocalM_RG);
+	 float wBY = nLocalM_BY == 0 ? 0 : sqrt(1.0 / nLocalM_BY);
+	 float wIntensity = sqrt(1.0 / nLocalM_Intensity);
+	 
+	 std::cout << nLocalM_Orientation << std::endl;
+	 std::cout << nLocalM_RG << std::endl;
+	 std::cout << nLocalM_BY << std::endl;
+	 std::cout << nLocalM_Intensity << std::endl;
+	 
+	 float sum = wOrientation + wRG + wBY + wIntensity;
+	 
+	 //cv::Mat mFinal = 0.25 * mOrientation + 0.25 * mF_RG + 0.25 * mF_BY + 0.25 * mF_Intensity;
+	 cv::Mat mFinal = (wOrientation * mOrientation + wRG * mF_RG + wBY * mF_BY + wIntensity * mF_Intensity) / sum;
 	 cv::minMaxLoc(mFinal, &minVal, &max_final);
 	 
 	 
@@ -371,10 +377,23 @@ int main(int argc, char** argv )
 	 cv::imshow("Final2", layer);
 	 cv::waitKey(0);
 	 
-	 cv::threshold(mFinal, mFinal, max_final * 0.6, 1, CV_8UC1);
+	 cv::normalize(mFinal, mFinal, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+	 mFinal.convertTo(mFinal, CV_8U);
+	 cv::threshold(mFinal, mFinal, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+	 //mFinal.convertTo(mFinal, CV_32F);
+	 //std::cout << mFinal << std::endl;
 	 
 	 cv::namedWindow("Final", CV_WINDOW_AUTOSIZE);
 	 cv::imshow("Final", mFinal);
+	 cv::waitKey(0);
+	 
+	 cv::Mat mFinalMaxFusion;
+	 cv::max(mOrientation, mF_RG, mFinalMaxFusion);
+	 cv::max(mFinalMaxFusion, mF_BY, mFinalMaxFusion);
+	 cv::max(mFinalMaxFusion, mF_Intensity, mFinalMaxFusion);
+	 
+	 cv::namedWindow("FinalMaxFusion", CV_WINDOW_AUTOSIZE);
+	 cv::imshow("FinalMaxFusion", mFinalMaxFusion);
 	 cv::waitKey(0);
     
     return 0;
