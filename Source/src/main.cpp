@@ -4,6 +4,54 @@
 #include "oriented_pyr.h"
 #include <string>
 
+bool computeBinaryMap( cv::InputArray _saliencyMap, cv::OutputArray _binaryMap )
+{
+  cv::Mat saliencyMap = _saliencyMap.getMat();
+  cv::Mat labels = cv::Mat::zeros( saliencyMap.rows * saliencyMap.cols, 1, 1 );
+  cv::Mat samples = cv::Mat_<float>( saliencyMap.rows * saliencyMap.cols, 1 );
+  cv::Mat centers;
+  cv::TermCriteria terminationCriteria;
+  terminationCriteria.epsilon = 0.1;
+  terminationCriteria.maxCount = 5000;
+  terminationCriteria.type = cv::TermCriteria::COUNT + cv::TermCriteria::EPS;
+
+  int elemCounter = 0;
+  for ( int i = 0; i < saliencyMap.rows; i++ )
+  {
+    for ( int j = 0; j < saliencyMap.cols; j++ )
+    {
+      samples.at<float>( elemCounter, 0 ) = saliencyMap.at<float>( i, j );
+      elemCounter++;
+    }
+  }
+
+  cv::kmeans( samples, 5, labels, terminationCriteria, 5, cv::KMEANS_RANDOM_CENTERS, centers );
+
+  cv::Mat outputMat = cv::Mat_<float>( saliencyMap.size() );
+  int intCounter = 0;
+  for ( int x = 0; x < saliencyMap.rows; x++ )
+  {
+    for ( int y = 0; y < saliencyMap.cols; y++ )
+    {
+      outputMat.at<float>( x, y ) = centers.at<float>( labels.at<int>( intCounter, 0 ), 0 );
+      intCounter++;
+    }
+
+  }
+
+  //Convert
+  outputMat = outputMat * 255;
+  outputMat.convertTo( outputMat, CV_8U );
+
+  // adaptative thresholding using Otsu's method, to make saliency map binary
+  _binaryMap.createSameSize(outputMat, outputMat.type());
+  cv::Mat BinaryMap = _binaryMap.getMat();
+  cv::threshold( outputMat, BinaryMap, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU );
+
+  return true;
+
+}
+
 cv::Mat across_scale_addition(const std::vector<cv::Mat>& scale_images)
 {
     cv::Size im_size = scale_images[0].size();
