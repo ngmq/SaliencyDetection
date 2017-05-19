@@ -36,9 +36,8 @@ cv::Mat acrossScaleAddition(const std::vector<cv::Mat>& scale_images)
 int countLocalMaxima(const cv::Mat& input, const int kernel_size)
 {
   cv::Mat src = input.clone();
-
 	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX, CV_8U);
-  src.convertTo(src, CV_8U);
+	src.convertTo(src, CV_8U);
 
 	int cnt = 0;
 
@@ -47,12 +46,12 @@ int countLocalMaxima(const cv::Mat& input, const int kernel_size)
 		for(int j = 0; j < src.cols; ++j)
 		{
 			unsigned char center = src.at<unsigned char>(i, j);
-			if(center <= 200)
+			if(center <= 100)
 				continue;
 			bool isLocal = true;
-			for(int dx = -5; dx <= 5; ++dx)
+			for(int dx = -1; dx <= 1; ++dx)
 			{
-				for(int dy = -5; dy <= 5; ++dy)
+				for(int dy = -1; dy <= 1; ++dy)
 				{
 					unsigned char surround = src.at<unsigned char>(i + dx, j + dy);
 					if( (dx != 0 || dy != 0) && surround > center )
@@ -63,6 +62,10 @@ int countLocalMaxima(const cv::Mat& input, const int kernel_size)
 			}
 			cnt += isLocal;
 		}
+	}
+	if(cnt == 1)
+	{
+		std::cout << src << std::endl;
 	}
 	return cnt;
 }
