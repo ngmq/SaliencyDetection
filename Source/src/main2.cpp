@@ -306,54 +306,77 @@ cv::Mat orientationConspicuityMap(const cv::Mat &m, int num_layers, int num_orie
 
 int main(int argc, char** argv )
 {
-  // read image
-  cv::Mat image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+  const std::string PREFIX = "../output/";
+  const std::string EXTENSION = ".png";
+  std::string path = argv[1];
+  std::vector<cv::String> fn;
+  cv::glob(path,fn,true); // recurse
+  std::size_t tesa = fn[0].find("*");
+  for (size_t k=0; k<fn.size(); ++k)
+  {
+    std::string temp = fn[k];
+    std::size_t pos1 = 1;
+    while(pos1 != tesa)
+    {
+       pos1 = temp.find("/");
+       temp = temp.substr(pos1+1);
+    }
+    std::size_t pos2 = temp.find(".jpg");
+    std::string name = temp.substr(pos1+1,pos2-pos1-1);
+    //std::cout << name << std::endl;
 
-  // gray image
-  cv::Mat gray;
-  cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-  gray.convertTo(gray, CV_32F);
-  gray /= 255.0f;
+    cv::Mat image = cv::imread(fn[k], CV_LOAD_IMAGE_COLOR);
+    if (image.empty()) continue;
 
-  // lab image
-  cv::Mat lab;
-  cv::cvtColor(image, lab, cv::COLOR_BGR2Lab);
-  // Normalize to range [0, 1] and convert to CV_32F for calculations
-  lab.convertTo(lab, CV_32F);
-  lab /= 255.0f;
+    // gray image
+    cv::Mat gray;
+    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    gray.convertTo(gray, CV_32F);
+    gray /= 255.0f;
 
-  // split the channels (L, a, b) to vector elements
-  std::vector<cv::Mat> lab_channels;
-  cv::split(lab, lab_channels);
+    // lab image
+    cv::Mat lab;
+    cv::cvtColor(image, lab, cv::COLOR_BGR2Lab);
+    // Normalize to range [0, 1] and convert to CV_32F for calculations
+    lab.convertTo(lab, CV_32F);
+    lab /= 255.0f;
 
-  int num_layers = 4;
-  int num_orientations = 8;
+    // split the channels (L, a, b) to vector elements
+    std::vector<cv::Mat> lab_channels;
+    cv::split(lab, lab_channels);
 
-  // mean operation
-  std::vector<cv::Mat> conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers);
-  conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations));
-  conspicuity_maps = normalizeVectors(conspicuity_maps);
-  cv::Mat final = meanOperation(conspicuity_maps);
-  cv::Mat display;
-  cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
-  cv::namedWindow("Final1", CV_WINDOW_NORMAL);
-  show("Final1", display);
+    int num_layers = 4;
+    int num_orientations = 8;
 
-  // max operation
-  conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, 1);
-  conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, 1));
-  final = maxOperation(conspicuity_maps);
-  cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
-  cv::namedWindow("Final2", CV_WINDOW_NORMAL);
-  show("Final2", display);
+    // mean operation
+    /*std::vector<cv::Mat> conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers);
+    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations));
+    conspicuity_maps = normalizeVectors(conspicuity_maps);
+    cv::Mat final = meanOperation(conspicuity_maps);
+    cv::Mat display;
+    cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
+    cv::namedWindow("Final1", CV_WINDOW_NORMAL);
+    show("Final1", display);*/
 
-  // unique weighting
-  conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, 2);
-  conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, 2));
-  final = uniqueness(conspicuity_maps);
-  cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
-  cv::namedWindow("Final3", CV_WINDOW_NORMAL);
-  show("Final3", display);
+    // max operation
+    /*conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, 1);
+    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, 1));
+    final = maxOperation(conspicuity_maps);
+    cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
+    cv::namedWindow("Final2", CV_WINDOW_NORMAL);
+    show("Final2", display);*/
+
+    // unique weighting
+    std::vector<cv::Mat> conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, 2);
+    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, 2));
+    cv::Mat final = uniqueness(conspicuity_maps);
+    //final.convertTo(final, CV_8U);
+    cv::normalize(final, final, 0, 255, cv::NORM_MINMAX);
+    //cv::namedWindow("Final3", CV_WINDOW_NORMAL);
+    //show("Final3", display);
+
+    cv::imwrite(PREFIX+name+EXTENSION, final);
+  }
 
   return 0;
 }
