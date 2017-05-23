@@ -63,10 +63,6 @@ int countLocalMaxima(const cv::Mat& input, const int kernel_size)
 			cnt += isLocal;
 		}
 	}
-	if(cnt == 1)
-	{
-		std::cout << src << std::endl;
-	}
 	return cnt;
 }
 
@@ -81,7 +77,6 @@ double normalizationFactor(const std::vector<cv::Mat>& m)
     cv::minMaxLoc(m[i].clone(), &temp_min, &temp_max);
     desired_max = std::max( max, temp_max);
   }
-  std::cout << "desired max " << desired_max << std::endl;
   return desired_max;
 }
 
@@ -194,17 +189,17 @@ std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, in
   gauss_pyr s_pyr_b(lab_channels[2], num_layers, surround_sigma);
 
   cv::Mat on_off = onOffMap(c_pyr_l, s_pyr_l, num_layers);
-  cv::Mat off_on = onOffMap(c_pyr_l, s_pyr_l, num_layers);
+  cv::Mat off_on = offOnMap(c_pyr_l, s_pyr_l, num_layers);
   L_vector.push_back(on_off.clone());
   L_vector.push_back(off_on.clone());
 
   on_off = onOffMap(c_pyr_a, s_pyr_a, num_layers);
-  off_on = onOffMap(c_pyr_a, s_pyr_a, num_layers);
+  off_on = offOnMap(c_pyr_a, s_pyr_a, num_layers);
   A_vector.push_back(on_off.clone());
   A_vector.push_back(off_on.clone());
 
   on_off = onOffMap(c_pyr_b, s_pyr_b, num_layers);
-  off_on = onOffMap(c_pyr_b, s_pyr_b, num_layers);
+  off_on = offOnMap(c_pyr_b, s_pyr_b, num_layers);
   B_vector.push_back(on_off.clone());
   B_vector.push_back(off_on.clone());
 
