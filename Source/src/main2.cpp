@@ -224,6 +224,8 @@ std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, in
   v.push_back(A_conspicuity_map.clone());
   v.push_back(B_conspicuity_map.clone());
 
+  //std::cout<<"L map " << L_conspicuity_map<<std::endl;
+
   return v;
 }
 
@@ -233,10 +235,10 @@ std::vector<cv::Mat> orientationFeatureMap(cv::Mat &m, int num_layers, int num_o
   double minVal, maxVal;
   const char *title[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
 
-  double sigma = 2.0;
+  double sigma = 10.0;
   gauss_pyr gp(m, num_layers, sigma);
 
-  double sigma2 = 1.0;
+  double sigma2 = 5.0;
   laplacian_pyr lp(gp, sigma2);
 
   oriented_pyr op(lp, num_orientations);
@@ -246,7 +248,9 @@ std::vector<cv::Mat> orientationFeatureMap(cv::Mat &m, int num_layers, int num_o
   {
     cv::Mat layer = acrossScaleAddition(op.getByOrientation(i));
     cv::minMaxLoc(layer, &minVal, &maxVal);
-    cv::threshold(layer, layer, maxVal * 0.6, 1, cv::THRESH_BINARY);
+    cv::normalize(layer, layer, 0, maxVal, cv::NORM_MINMAX);
+    cv::threshold(layer, layer, 0, 1, cv::THRESH_TOZERO);
+    //cv::threshold(layer, layer, maxVal * 0.6, 0, cv::THRESH_BINARY);
     orientation_maps.push_back(layer.clone());
 
     /*cv::Mat display;
@@ -254,7 +258,6 @@ std::vector<cv::Mat> orientationFeatureMap(cv::Mat &m, int num_layers, int num_o
     cv::namedWindow(title[i], CV_WINDOW_NORMAL);
     show(title[i], display);*/
   }
-
   return orientation_maps;
 }
 
@@ -270,6 +273,7 @@ cv::Mat orientationConspicuityMap(const cv::Mat &m, int num_layers, int num_orie
   cv::normalize(conspicuity_map, display, 0, 1, cv::NORM_MINMAX);
   cv::namedWindow("Orienation final", CV_WINDOW_NORMAL);
   show("Orientation final", display);*/
+  //std::cout<<"orienation " << conspicuity_map <<std::endl;
   return conspicuity_map;
 }
 
