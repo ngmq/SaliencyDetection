@@ -24,7 +24,7 @@ cv::Mat acrossScaleAddition(const std::vector<cv::Mat>& scale_images)
     }
     else
     {
-      resized = scale_images[0];
+      resized = scale_images[i];
     }
 
     result += resized;
