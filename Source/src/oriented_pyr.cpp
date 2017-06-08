@@ -1,7 +1,7 @@
 #include "oriented_pyr.h"
 #include <opencv2/opencv.hpp>
 
-oriented_pyr::oriented_pyr(const laplacian_pyr& p, int num_orientations)
+oriented_pyr::oriented_pyr(const laplacian_pyr& p, int num_orientations, int size, int lamda)
 {
     number_of_layers = p.getNumberOfLayers();
     number_of_orientations = num_orientations;
@@ -12,7 +12,7 @@ oriented_pyr::oriented_pyr(const laplacian_pyr& p, int num_orientations)
     for(int i = 0; i < num_orientations; ++i)
     {
         double theta = -CV_PI / 2 - i * step;
-        cv::Mat kernel = cv::getGaborKernel( cv::Size(25, 25), 10.0, theta, 10.0, 1.0, 0, CV_32F);
+        cv::Mat kernel = cv::getGaborKernel( cv::Size(size, size), 10.0, theta, lamda, 1.0, 0, CV_32F);
         gaborFilters.push_back(kernel.clone());
     }
     for(int i = 0; i < number_of_orientations; ++i)
@@ -23,7 +23,7 @@ oriented_pyr::oriented_pyr(const laplacian_pyr& p, int num_orientations)
             cv::Mat dst;
             cv::filter2D(src, dst, CV_32F, gaborFilters[i]);
             orientation_maps[i].push_back(dst.clone());
-        }  
+        }
     }
 }
 
