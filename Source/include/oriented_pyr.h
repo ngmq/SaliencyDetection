@@ -5,7 +5,7 @@
 class oriented_pyr
 {
 public:
-    oriented_pyr(const laplacian_pyr& p, int num_orientations);
+    oriented_pyr(const laplacian_pyr& p, int num_orientations, int size, int lamda);
     std::vector <cv::Mat > getByLayer(int layer) const;
     std::vector <cv::Mat > getByOrientation( int orientation) const;
     cv::Mat get(int orientation, int layer) const;
