@@ -1,51 +1,43 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-precision = 0
-recall = 0
 
-m1 = np.loadtxt("result_all1.txt")
-final1 = np.zeros((m1.shape[0],2))
-
-for i in range(0,255):
-	for j in range(1, m1.shape[1]):
-		if j%2 == 1:
-			precision += m1[i,j]
-		else:
-			recall += m1[i,j]
-	final1[i,0] = precision / 150
-	final1[i,1] = recall / 150
+def averagePrecisionRecall(m):
+	final = np.zeros((m.shape[0],2))
 	precision = 0
 	recall = 0
 
-m2 = np.loadtxt("result_all2.txt")
-final2 = np.zeros((m2.shape[0],2))
+	for i in range(0,255):
+		for j in range(1, m.shape[1]):
+			if j%2 == 1:
+				precision += m[i,j]
+			else:
+				recall += m[i,j]
+		final[i,0] = precision / 1000
+		final[i,1] = recall / 1000
+		precision = 0
+		recall = 0
 
-for i in range(0,255):
-	for j in range(1, m2.shape[1]):
-		if j%2 == 1:
-			precision += m2[i,j]
-		else:
-			recall += m2[i,j]
-	final2[i,0] = precision / 150
-	final2[i,1] = recall / 150
-	precision = 0
-	recall = 0
+	return final
 
-m3 = np.loadtxt("result_all.txt")
-final3 = np.zeros((m3.shape[0],2))
 
-for i in range(0,255):
-	for j in range(1, m3.shape[1]):
-		if j%2 == 1:
-			precision += m3[i,j]
-		else:
-			recall += m3[i,j]
-	final3[i,0] = precision / 150
-	final3[i,1] = recall / 150
-	precision = 0
-	recall = 0
+m1 = np.loadtxt("result_all_mean.txt")
+final1 = averagePrecisionRecall(m1)
 
+m2 = np.loadtxt("result_all_max.txt")
+final2 = averagePrecisionRecall(m2)
+
+m3 = np.loadtxt("result_all_unique.txt")
+final3 = averagePrecisionRecall(m3)
+
+m4 = np.loadtxt("result_all_mean_2.txt")
+final4 = averagePrecisionRecall(m4)
+
+m5 = np.loadtxt("result_all_max_2.txt")
+final5 = averagePrecisionRecall(m5)
+
+m6 = np.loadtxt("result_all_unique_2.txt")
+final6 = averagePrecisionRecall(m6)
 
 fig = plt.figure()
 
@@ -55,22 +47,39 @@ ax1.set_title("Precision-Recall")
 ax1.set_xlabel('Recall')
 ax1.set_ylabel('Precision')
 
-x = final1[:,1]
-y = final1[:,0]
+x = final1[1:,1]
+y = final1[1:,0]
 
-ax1.plot(x,y, c='b', label='Method 1') 
+ax1.plot(x,y, c='b', label='Mean') 
 
-x = final2[:,1]
-y = final2[:,0]
+x = final2[1:,1]
+y = final2[1:,0]
 
-ax1.plot(x,y, c='y', label='Method 2') 
+ax1.plot(x,y, c='y', label='Max') 
+
+x = final3[1:,1]
+y = final3[1:,0]
+
+ax1.plot(x,y, c='r', label='Unique')
+
+x = final4[1:,1]
+y = final4[1:,0]
+
+ax1.plot(x,y, c='g', label='Mean 2')
+
+x = final5[1:,1]
+y = final5[1:,0]
+
+ax1.plot(x,y, c='black', label='Max 2')
+
+x = final6[1:,1]
+y = final6[1:,0]
+
+ax1.plot(x,y, c='orange', label='Unique 2')
 
 
-x = final3[:,1]
-y = final3[:,0]
-
-ax1.plot(x,y, c='r', label='Our') 
-
+ax1.set_xlim([0,1])
+ax1.set_ylim([0,1]) 
 leg = ax1.legend()
 
 plt.show()
