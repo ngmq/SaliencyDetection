@@ -133,10 +133,13 @@ cv::Mat uniqueness(std::vector<cv::Mat>& v)
   {
     int n_local_m = countLocalMaxima(v[i], 3);
     float w = n_local_m == 0 ? 0 : sqrt(1.0 / n_local_m);
-    sum += w;
+    //sum += w;
     final += w*v[i];
   }
-  final /= sum;
+  //final /= sum;
+  double normalization_factor = normalizationFactor(v);
+  cv::normalize(final, final, 0.0f, (float)normalization_factor, cv::NORM_MINMAX);
+
   return final;
 }
 
@@ -175,7 +178,7 @@ cv::Mat offOnMap(const gauss_pyr &on, const gauss_pyr &off, int num_layers)
 }
 
 // create a vector of color conspicuity maps
-std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, int num_layers)
+std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, int num_layers, int method)
 {
   cv::Mat L_conspicuity_map, A_conspicuity_map, B_conspicuity_map;
   std::vector<cv::Mat> L_vector, A_vector, B_vector, v;
@@ -204,9 +207,25 @@ std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, in
   B_vector.push_back(on_off.clone());
   B_vector.push_back(off_on.clone());
 
-  L_conspicuity_map = meanOperation(L_vector);
-  A_conspicuity_map = meanOperation(A_vector);
-  B_conspicuity_map = meanOperation(B_vector);
+  if(method == 1)
+  {
+    L_conspicuity_map = meanOperation(L_vector);
+    A_conspicuity_map = meanOperation(A_vector);
+    B_conspicuity_map = meanOperation(B_vector);
+
+  }
+  else if(method == 2)
+  {
+    L_conspicuity_map = maxOperation(L_vector);
+    A_conspicuity_map = maxOperation(A_vector);
+    B_conspicuity_map = maxOperation(B_vector);
+  }
+  else
+  {
+    L_conspicuity_map = uniqueness(L_vector);
+    A_conspicuity_map = uniqueness(A_vector);
+    B_conspicuity_map = uniqueness(B_vector);
+  }
 
   /*cv::Mat display;
   cv::normalize(L_conspicuity_map, display, 0, 1, cv::NORM_MINMAX);
@@ -225,19 +244,7 @@ std::vector<cv::Mat> colorConspicuityMaps(std::vector<cv::Mat> &lab_channels, in
   v.push_back(A_conspicuity_map.clone());
   v.push_back(B_conspicuity_map.clone());
 
-  //std::cout<<"L map " << L_conspicuity_map<<std::endl;
-
   return v;
-}
-
-cv::Mat meanOrientationMap(std::vector<cv::Mat> m)
-{
-  double normalization_factor = normalizationFactor(m);
-  cv::Mat conspicuity_map = cv::Mat(m[0].size(), CV_32F, 0.0);
-  conspicuity_map = 3.0/16.0 * (m[0]+m[2]+m[4]+m[6]) + 1.0/16.0*(m[1]+m[3]+m[5]+m[7]);
-  cv::normalize(conspicuity_map, conspicuity_map, 0.0f, (float)normalization_factor, cv::NORM_MINMAX);
-
-  return conspicuity_map;
 }
 
 // create a orientation feature map
@@ -273,12 +280,18 @@ std::vector<cv::Mat> orientationFeatureMap(cv::Mat &m, int num_layers, int num_o
 }
 
 // create a orientation conspicuity map
-cv::Mat orientationConspicuityMap(const cv::Mat &m, int num_layers, int num_orientations)
+cv::Mat orientationConspicuityMap(const cv::Mat &m, int num_layers, int num_orientations, int method)
 {
   cv::Mat img = m.clone();
   std::vector<cv::Mat> feature_maps = orientationFeatureMap(img, num_layers, num_orientations);
   cv::Mat conspicuity_map;
-  conspicuity_map = meanOperation(feature_maps);
+
+  if(method == 1)
+    conspicuity_map = meanOperation(feature_maps);
+  else if(method == 2)
+    conspicuity_map = maxOperation(feature_maps);
+  else
+    conspicuity_map = uniqueness(feature_maps);
 
   /*cv::Mat display;
   cv::normalize(conspicuity_map, display, 0, 1, cv::NORM_MINMAX);
@@ -290,25 +303,27 @@ cv::Mat orientationConspicuityMap(const cv::Mat &m, int num_layers, int num_orie
 
 int main(int argc, char** argv )
 {
-  //Create a dynamic array to hold the values
+  /*//Create an array to hold the file names
   std::vector<std::string> names;
 
   //Create an input file stream
   std::ifstream in("gtnames.txt",std::ios::in);
-  std::string name;  //Variable to hold each number as it is read
-  //Read number using the extraction (>>) operator
+  std::string name;  //Variable to hold each name as it is read
+  //Read name using the extraction (>>) operator
   while (in >> name) {
-  	//Add the number to the end of the array
+  	//Add name to the end of the array
   	names.push_back(name);
   }
 
   //Close the file stream
   in.close();
-  std::cout<<names.size()<<std::endl;
+  //std::cout<<names.size()<<std::endl;*/
 
+  // prefix and suffix for saliency map output
   const std::string PREFIX = "../output/";
   const std::string EXTENSION = ".png";
 
+  // read input file
   std::string path = argv[1];
   std::vector<cv::String> fn;
   cv::glob(path,fn,true); // recurse
@@ -322,12 +337,15 @@ int main(int argc, char** argv )
        pos1 = temp.find("/");
        temp = temp.substr(pos1+1);
     }
+    // extract file name only from full path
     std::size_t pos2 = temp.find(".jpg");
     std::string name = temp.substr(pos1+1,pos2-pos1-1);
-    std::vector<std::string>::iterator it = std::find(names.begin(), names.end(), name);
-    if(it == names.end()) {
+
+    /*std::vector<std::string>::iterator it = std::find(names.begin(), names.end(), name);
+    if(it == names.end())
+    {
       continue;
-    }
+    }*/
 
     cv::Mat image = cv::imread(fn[k], CV_LOAD_IMAGE_COLOR);
     if (image.empty()) continue;
@@ -349,48 +367,34 @@ int main(int argc, char** argv )
     std::vector<cv::Mat> lab_channels;
     cv::split(lab, lab_channels);
 
-    int num_layers = 4;
+    int num_layers = 6;
     int num_orientations = 8;
+    int method = 3;
+    cv::Mat display;
+
+    std::vector<cv::Mat> conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, method);
+    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, method));
+    conspicuity_maps = normalizeVectors(conspicuity_maps);
 
     // mean operation
-    /*std::vector<cv::Mat> conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers);
-    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations));
-    conspicuity_maps = normalizeVectors(conspicuity_maps);
-    cv::Mat final = meanOperation(conspicuity_maps);
-    cv::Mat display;
-    cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
+    //cv::Mat final = meanOperation(conspicuity_maps);
+    /*cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
     cv::namedWindow("Final1", CV_WINDOW_NORMAL);
     show("Final1", display);*/
 
     // max operation
-    /*conspicuity_maps = colorConspicuityMaps(lab_channels, num_layers, 1);
-    conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations, 1));
-    final = maxOperation(conspicuity_maps);
-    cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
+    //cv::Mat final = maxOperation(conspicuity_maps);
+    /*cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
     cv::namedWindow("Final2", CV_WINDOW_NORMAL);
     show("Final2", display);*/
 
     // unique weighting
-    std::vector<cv::Mat> color_maps = colorConspicuityMaps(lab_channels, num_layers);
-    //cv::Mat c_map = 0.3*color_maps[0] + 0.4*color_maps[1] + 0.3*color_maps[2];
-    //std::vector<cv::Mat> conspicuity_maps;
-    //conspicuity_maps.push_back(c_map);
-    //conspicuity_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations));
-    //cv::Mat final = uniqueness(conspicuity_maps);
-    //cv::Mat final = 0.85*c_map + 0.15*orientationConspicuityMap(gray, num_layers, num_orientations);
-
-    //conspicuity_maps.push_back(final.clone());
-    color_maps.push_back(orientationConspicuityMap(gray, num_layers, num_orientations));
-    cv::Mat final = uniqueness(color_maps);
-    //conspicuity_maps.push_back(final.clone());
-    //final = uniqueness(conspicuity_maps);
-
-    cv::normalize(final, final, 0, 255, cv::NORM_MINMAX);
-    //cv::Mat display;
+    cv::Mat final = uniqueness(conspicuity_maps);
     //cv::normalize(final, display, 0, 1, cv::NORM_MINMAX);
     //cv::namedWindow("Final3", CV_WINDOW_NORMAL);
     //show("Final3", display);
 
+    cv::normalize(final, final, 0, 255, cv::NORM_MINMAX);
     cv::imwrite(PREFIX+name+EXTENSION, final);
   }
 
