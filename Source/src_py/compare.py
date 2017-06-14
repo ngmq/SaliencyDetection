@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import simps
 
 
 def averagePrecisionRecall(m):
@@ -21,14 +22,14 @@ def averagePrecisionRecall(m):
 	return final
 
 
-m1 = np.loadtxt("result_all_mean.txt")
-final1 = averagePrecisionRecall(m1)
+#m1 = np.loadtxt("result_all_mean.txt")
+#final1 = averagePrecisionRecall(m1)
 
-m2 = np.loadtxt("result_all_max.txt")
-final2 = averagePrecisionRecall(m2)
+#m2 = np.loadtxt("result_all_max.txt")
+#final2 = averagePrecisionRecall(m2)
 
-m3 = np.loadtxt("result_all_unique.txt")
-final3 = averagePrecisionRecall(m3)
+#m3 = np.loadtxt("result_all_unique.txt")
+#final3 = averagePrecisionRecall(m3)
 
 m4 = np.loadtxt("result_all_mean_2.txt")
 final4 = averagePrecisionRecall(m4)
@@ -47,36 +48,50 @@ ax1.set_title("Precision-Recall")
 ax1.set_xlabel('Recall')
 ax1.set_ylabel('Precision')
 
-x = final1[1:,1]
-y = final1[1:,0]
+#x = final1[1:,1]
+#y = final1[1:,0]
 
-ax1.plot(x,y, c='b', label='Mean') 
+#ax1.plot(x,y, c='b', label='Mean') 
 
-x = final2[1:,1]
-y = final2[1:,0]
+#x = final2[1:,1]
+#y = final2[1:,0]
 
-ax1.plot(x,y, c='y', label='Max') 
+#ax1.plot(x,y, c='y', label='Max') 
 
-x = final3[1:,1]
-y = final3[1:,0]
+#x = final3[1:,1]
+#y = final3[1:,0]
 
-ax1.plot(x,y, c='r', label='Unique')
+#ax1.plot(x,y, c='r', label='Unique')
 
 x = final4[1:,1]
 y = final4[1:,0]
 
-ax1.plot(x,y, c='g', label='Mean 2')
+area = np.trapz(y, dx=0.001)
+print(area)
+area = simps(y, dx=0.001)
+print(area)
+
+ax1.plot(x,y, c='r', label='Mean')
 
 x = final5[1:,1]
 y = final5[1:,0]
 
-ax1.plot(x,y, c='black', label='Max 2')
+area = np.trapz(y, dx=0.001)
+print(area)
+area = simps(y, dx=0.001)
+print(area)
+
+ax1.plot(x,y, c='g', label='Max')
 
 x = final6[1:,1]
 y = final6[1:,0]
 
-ax1.plot(x,y, c='orange', label='Unique 2')
+area = np.trapz(y, dx=0.001)
+print(area)
+area = simps(y, dx=0.001)
+print(area)
 
+ax1.plot(x,y, c='b', label='Unique')
 
 ax1.set_xlim([0,1])
 ax1.set_ylim([0,1]) 
