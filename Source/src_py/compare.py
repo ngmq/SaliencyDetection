@@ -59,25 +59,17 @@ y = final1[1:,0]
 
 area = np.trapz(y, dx=deltax)
 print("Method1 = {0}".format(area))
-area = simps(y, dx=deltax)
-print("Method1 = {0}".format(area))
 ax1.plot(x,y, c='red', label='Method 1')
 
 x = final2[1:,1]
 y = final2[1:,0]
 area = np.trapz(y, dx=deltax)
 print("Method2 = {0}".format(area))
-area = simps(y, dx=deltax)
-print("Method2 = {0}".format(area))
 ax1.plot(x,y, c='gold', label='Method 2') 
 
 x = final3[1:,1]
 y = final3[1:,0]
 area = np.trapz(y, dx=deltax)
-# print("y = ")
-# print(y)
-print("Ground Truth = {0}".format(area))
-area = simps(y, dx=deltax)
 print("Ground Truth = {0}".format(area))
 ax1.plot(x,y, c='chartreuse', label='Method GT')
 
@@ -85,8 +77,6 @@ x = final4[1:,1]
 y = final4[1:,0]
 
 area = np.trapz(y, dx=deltax)
-print("Our method, Mean: {0}".format(area))
-area = simps(y, dx=deltax)
 print("Our method, Mean: {0}".format(area))
 
 ax1.plot(x,y, c='blue', label='Mean')
@@ -96,8 +86,6 @@ y = final5[1:,0]
 
 area = np.trapz(y, dx=deltax)
 print("Our method, Max: {0}".format(area))
-area = simps(y, dx=deltax)
-print("Our method, Max: {0}".format(area))
 
 ax1.plot(x,y, c='deeppink', label='Max')
 
@@ -106,8 +94,6 @@ y = final6[1:,0]
 
 area = np.trapz(y, dx=deltax)
 print("Our method, Unique: {0}".format(area))
-area = simps(y, dx=deltax)
-print("Our method, Unique: {0}".format(area))
 
 ax1.plot(x,y, c='y', label='Unique')
 
@@ -115,8 +101,6 @@ x = final7[1:,1]
 y = final7[1:,0]
 
 area = np.trapz(y, dx=deltax)
-print("DL = {0}".format(area))
-area = simps(y, dx=deltax)
 print("DL = {0}".format(area))
 ax1.plot(x,y, c='darkmagenta', label='DeepSaliency')
 
