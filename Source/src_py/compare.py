@@ -56,16 +56,26 @@ ax1.set_ylabel('Precision')
 x = final1[1:,1]
 y = final1[1:,0]
 
-ax1.plot(x,y, c='red', label='Method 1') 
+area = np.trapz(y, dx=0.001)
+print("Method1 = {0}".format(area))
+area = simps(y, dx=0.001)
+print("Method1 = {0}".format(area))
+ax1.plot(x,y, c='red', label='Method 1')
 
 x = final2[1:,1]
 y = final2[1:,0]
-
+area = np.trapz(y, dx=0.001)
+print("Method2 = {0}".format(area))
+area = simps(y, dx=0.001)
+print("Method2 = {0}".format(area))
 ax1.plot(x,y, c='gold', label='Method 2') 
 
 x = final3[1:,1]
 y = final3[1:,0]
-
+area = np.trapz(y, dx=0.001)
+print("Ground Truth = {0}".format(area))
+area = simps(y, dx=0.001)
+print("Ground Truth = {0}".format(area))
 ax1.plot(x,y, c='chartreuse', label='Method GT')
 
 x = final4[1:,1]
@@ -102,9 +112,9 @@ x = final7[1:,1]
 y = final7[1:,0]
 
 area = np.trapz(y, dx=0.001)
-print(area)
+print("DL = {0}".format(area))
 area = simps(y, dx=0.001)
-print(area)
+print("DL = {0}".format(area))
 ax1.plot(x,y, c='darkmagenta', label='DeepSaliency')
 
 ax1.set_xlim([0,1])
