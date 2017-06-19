@@ -14,7 +14,7 @@ input_size = (96, 96, 3)
 output_size = (48, 48)
 nb_output = output_size[0] * output_size[1]
 batch_size = 32
-epochs = 40
+epochs = 200
 
 print(nb_output)
 
@@ -104,7 +104,7 @@ model.add(MaxPooling2D(pool_size=(2,2), strides=2))
 model.add(Conv2D(64, (3,3)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(3,3), strides=2))
-model.add(Conv2D(64, (3,3), kernel_regularizer=regularizers.l2(0.01)))
+model.add(Conv2D(64, (3,3)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(3,3), strides=2))
 # model.add(Dropout(0.5))
@@ -113,7 +113,7 @@ model.add(Dense(nb_output, activation='relu', kernel_regularizer=regularizers.l2
 # model.add(Dropout(0.5))
 model.add(Dense(nb_output, activation='sigmoid', kernel_regularizer=regularizers.l2(0.01)))
 
-opt = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-06)
+opt = keras.optimizers.Adam(lr=0.00001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-06)
 
 ## binary_crossentropy loss
 # model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['binary_accuracy'])

@@ -47,10 +47,17 @@ assert len(y_values) == 2
 result = model.evaluate(x_test, y_test)
 print("result = {0}".format(result))
 
-y = model.predict(x_test)
-print(len(y))
+# y = model.predict(x_test)
+# print(len(y))
 
-img = y[0]
-img = np.rint(img)
-img = img.reshape(48, 48)
-imshow(img)
+# i = x_test[0]
+# imshow(i)
+
+# j = y_test[0]
+# j = j.reshape(48, 48)
+# imshow(j)
+
+# img = y[0]
+# img = np.rint(img)
+# img = img.reshape(48, 48)
+# imshow(img)
