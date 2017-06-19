@@ -11,10 +11,10 @@ x = [y.strip() for y in x]
 print(x)
 
 
-all_img = glob("./input/*.jpg")
+all_img = glob("./input_gt/*.bmp")
 count = 0
 for img_path in tqdm(all_img):
-	img = imread(img_path)
-	img = imresize(img, (96, 96, 3))
+	img = imread(img_path, True)
+	img = imresize(img, (48, 48))
 	img_name = os.path.basename(img_path)
-	imsave("./input_resized/{0}".format(img_name), img)
+	imsave("./input_gt_resized/{0}".format(img_name), img)
