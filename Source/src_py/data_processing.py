@@ -4,6 +4,7 @@ from glob import glob
 from tqdm import tqdm
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 np.random.seed(233)
 
@@ -15,10 +16,14 @@ print(test_files)
 print(len(test_files))
 
 all_img = glob("./input_resized/*.jpg")
+all_img = sorted(all_img)
 
 X_train = list()
 X_test = list()
 
+cnt = 0
+
+print("=====INPUT:=====")
 for img_path in tqdm(all_img):
     img = imread(img_path)
     img_flat = img.reshape(96*96*3)
@@ -28,12 +33,19 @@ for img_path in tqdm(all_img):
         X_test.append(img_flat)
     else:
         X_train.append(img_flat)
+        
+    # print(img_name)
+    # cnt += 1
+    # if(cnt == 100):
+        # break
 
 all_img = glob("./input_gt_resized/*.bmp")
+all_img = sorted(all_img)
 
 y_train = list()
 y_test = list()
 
+cnt = 0
 for img_path in tqdm(all_img):
     img = imread(img_path, True)
     img_flat = img.reshape(48*48)
@@ -44,6 +56,11 @@ for img_path in tqdm(all_img):
         y_test.append(img_flat)
     else:
         y_train.append(img_flat)
+        
+    # print(img_name)
+    # cnt += 1
+    # if(cnt == 100):
+        # break
 
 X_test = np.array(X_test)
 X_train = np.array(X_train)
@@ -82,3 +99,20 @@ assert X_validation.shape[0] == y_validation.shape[0]
 assert y_validation.shape[0] == 150
 np.save('X_validation', X_validation, allow_pickle=False)
 np.save('y_validation', y_validation, allow_pickle=False)
+
+# x_train = np.load('X_train.npy')
+# nx = len(x_train)
+# x_train = x_train.reshape(nx, 96, 96, 3)
+# y_train = np.load('y_train.npy')
+# y_train = y_train.reshape(nx, 48, 48)
+
+# random_idx = random.sample(range(nx), 10)
+
+# for i in range(10):
+    # plt.imshow(X_train[i].reshape(96, 96, 3))
+    # plt.show()
+    # plt.imshow(y_train[i].reshape(48, 48))
+    # plt.show()
+
+
+
