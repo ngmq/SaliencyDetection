@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simps
-
+import operator
 
 def averagePrecisionRecall(m):
     final = np.zeros((m.shape[0],2))
@@ -57,26 +57,32 @@ ax1.set_ylabel('Precision')
 x = final1[1:,1]
 y = final1[1:,0]
 
-area = np.trapz(y, dx=deltax)
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Method1 = {0}".format(area))
 ax1.plot(x,y, c='red', label='Method 1')
 
 x = final2[1:,1]
 y = final2[1:,0]
-area = np.trapz(y, dx=deltax)
+
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Method2 = {0}".format(area))
 ax1.plot(x,y, c='gold', label='Method 2') 
 
 x = final3[1:,1]
 y = final3[1:,0]
-area = np.trapz(y, dx=deltax)
+
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Ground Truth = {0}".format(area))
 ax1.plot(x,y, c='chartreuse', label='Method GT')
 
 x = final4[1:,1]
 y = final4[1:,0]
 
-area = np.trapz(y, dx=deltax)
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Our method, Mean: {0}".format(area))
 
 ax1.plot(x,y, c='blue', label='Mean')
@@ -84,7 +90,8 @@ ax1.plot(x,y, c='blue', label='Mean')
 x = final5[1:,1]
 y = final5[1:,0]
 
-area = np.trapz(y, dx=deltax)
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Our method, Max: {0}".format(area))
 
 ax1.plot(x,y, c='deeppink', label='Max')
@@ -92,7 +99,8 @@ ax1.plot(x,y, c='deeppink', label='Max')
 x = final6[1:,1]
 y = final6[1:,0]
 
-area = np.trapz(y, dx=deltax)
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("Our method, Unique: {0}".format(area))
 
 ax1.plot(x,y, c='y', label='Unique')
@@ -100,7 +108,8 @@ ax1.plot(x,y, c='y', label='Unique')
 x = final7[1:,1]
 y = final7[1:,0]
 
-area = np.trapz(y, dx=deltax)
+x_sorted, y_sorted = zip(*sorted(zip(x, y),key=operator.itemgetter(0), reverse=False))
+area = np.trapz(y_sorted, x_sorted)
 print("DL = {0}".format(area))
 ax1.plot(x,y, c='darkmagenta', label='DeepSaliency')
 
