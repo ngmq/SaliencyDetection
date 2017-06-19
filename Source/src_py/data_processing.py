@@ -36,7 +36,7 @@ y_test = list()
 
 for img_path in tqdm(all_img):
     img = imread(img_path, True)
-    img_flat = img.reshape(96*96)
+    img_flat = img.reshape(48*48)
     img_flat = np.where(img_flat > 0, 1.0, 0.0)
     img_name = os.path.basename(img_path)
     img_name = img_name.split('.')[0]
@@ -50,11 +50,18 @@ X_train = np.array(X_train)
 y_test = np.array(y_test)
 y_train = np.array(y_train)
 
+y_values = set(y_test.flatten())
+assert len(y_values) == 2
+
+y_values = set(y_train.flatten())
+assert len(y_values) == 2
+
+
 print y_test.shape, X_test.shape
 assert X_test.shape[0] == y_test.shape[0]
 assert y_test.shape[0] == 150
 np.save('X_test', X_test, allow_pickle=False)
-np.save('y_test', X_test, allow_pickle=False)
+np.save('y_test', y_test, allow_pickle=False)
 
 # Take randomly 150 images as validation test
 random_idx = random.sample(range(len(X_train)), 150)
